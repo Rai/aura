@@ -563,6 +563,8 @@ namespace Aura.Mabi.Network
 		public const int TalentTitleChange = 0xAB18;
 		public const int TalentTitleUpdate = 0xAB19;
 
+        public const int SagaIriaPlayMovie = 0xAB33;
+
 		public const int ShamalaTransformationUpdate = 0xAB1B;
 		public const int ShamalaTransformationUse = 0xAB1C;
 		public const int ShamalaTransformation = 0xAB1D;

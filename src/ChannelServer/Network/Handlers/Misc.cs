@@ -439,6 +439,20 @@ namespace Aura.Channel.Network.Handlers
 				Send.Notice(creature, NoticeType.Middle, Localization.Get("Your chat text color has changed."));
 		}
 
+        [PacketHandler(Op.SagaIriaPlayMovie)]
+        public void SagaIriaPlayMovie(ChannelClient client, Packet packet)
+        {
+            var creature = client.GetCreatureSafe(packet.Id);
+
+            var season = packet.GetInt();
+            var episode = packet.GetInt();
+            var unk3 = packet.GetByte();
+            var unk4 = packet.GetByte();
+
+            //Send.MsgBox(creature, Localization.Get("DEBUG: {0}, {1}, {2}, {3}"), season, episode, unk3, unk4);
+            // Send 0x186A6 packet (PlayCutscene)
+        }
+
 		/// <summary>
 		/// Dummy handler.
 		/// </summary>

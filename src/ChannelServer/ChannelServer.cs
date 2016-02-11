@@ -140,6 +140,8 @@ namespace Aura.Channel
 			this.ConnectToLogin(true);
 			this.StartStatusUpdateTimer();
 
+            CliUtil.WriteHeader("Channel Server [" + this.Conf.Channel.ChannelName + "]", ConsoleColor.DarkGreen);
+
 			CliUtil.RunningTitle();
 			_running = true;
 
