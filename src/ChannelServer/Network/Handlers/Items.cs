@@ -944,10 +944,21 @@ namespace Aura.Channel.Network.Handlers
 		public void OpenItemShop(ChannelClient client, Packet packet)
 		{
 			var creature = client.GetCreatureSafe(packet.Id);
-			var parameter = client.Account.Id;
 
-			Send.ServerMessage(creature, Localization.Get("The item shop isn't available yet."));
-			Send.OpenItemShopR(creature, false, null);
+			if (!AuraData.FeaturesDb.IsEnabled("ItemShop"))
+			{
+				Send.ServerMessage(creature, Localization.Get("The item shop isn't available yet."));
+				Send.OpenItemShopR(creature, false, null);
+				return;
+			}
+
+			// The item shop URL has one parameter, "key", that is set to
+			// the value we send here. The web page has to use this value
+			// to identify the user. To provide some security, we send the
+			// session key, which should only be known by this client.
+			var parameter = client.Account.SessionKey.ToString();
+
+			Send.OpenItemShopR(creature, true, parameter);
 		}
 	}
 }
