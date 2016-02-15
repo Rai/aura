@@ -423,5 +423,98 @@ namespace Aura.Channel.Network.Sending
 			packet.PutByte(0);
 			creature.Client.Send(packet);
 		}
+
+        /// <summary>
+        /// Sends OpenDressingRoomR to creature's client.
+        /// </summary>
+        /// <param name="creature"></param>
+        /// <param name="result"></param>
+        public static void OpenDressingRoomR(Creature creature)
+        {
+            var gp = new Packet(Op.OpenDressingRoomR, creature.EntityId);
+            List<Item> dressingRoomItems = ChannelServer.Instance.Database.GetDressingRoomItems(creature.Client.Account.Id);
+            
+            gp.PutByte(1);
+            gp.PutString(creature.Client.Account.Id);
+            gp.PutInt(dressingRoomItems.Count); //Count of some items?
+
+            if (dressingRoomItems.Count > 0)
+            {
+                foreach (Item item in dressingRoomItems)
+                {
+                    gp.PutLong(0);
+                    gp.AddItemInfo(item, ItemPacketType.Private);
+                }
+            }
+
+            // 039 [........000008AF] Int    : 2223 (Count & pon charge for hair, face, etc?)
+            gp.PutInt(0); // Count & pon charge for hair, face, etc?
+
+            // 040 [........00000003] Int    : 3
+            // 041 [........00000001] Int    : 1
+            // 042 [..............04] Byte   : 4
+
+            creature.Client.Send(gp);
+        }
+
+        /// <summary>
+        /// Sends CloseDressingRoomR to creature's client.
+        /// </summary>
+        /// <param name="creature"></param>
+        /// <param name="result"></param>
+        public static void CloseDressingRoomR(Creature creature)
+        {
+            var packet = new Packet(Op.CloseDressingRoomR, creature.EntityId);
+            packet.PutByte(1);
+            creature.Client.Send(packet);
+        }
+
+        /// <summary>
+        /// Sends DressingRoomPutItemR to creature's client.
+        /// </summary>
+        /// <param name="creature"></param>
+        /// <param name="result"></param>
+        public static void DressingRoomPutItemR(Creature creature, bool result)
+        {
+            var packet = new Packet(Op.DressingRoomPutItemR, creature.EntityId);
+            packet.PutByte(result);
+            creature.Client.Send(packet);
+        }
+
+        /// <summary>
+        /// Sends DressingRoomAddItemListing to creature's client.
+        /// </summary>
+        /// <param name="creature"></param>
+        /// <param name="result"></param>
+        public static void DressingRoomAddItemListing(Creature creature, Item item)
+        {
+            var packet = new Packet(Op.DressingRoomAddItemListing, creature.EntityId);
+            packet.AddItemInfo(item, ItemPacketType.Private);
+            creature.Client.Send(packet);
+        }
+
+        /// <summary>
+        /// Sends DressingRoomRemoveItemListing to creature's client.
+        /// </summary>
+        /// <param name="creature"></param>
+        /// <param name="result"></param>
+        public static void DressingRoomRemoveItemListing(Creature creature, Item item)
+        {
+            var packet = new Packet(Op.DressingRoomRemoveItemListing, creature.EntityId);
+            packet.PutLong(item.EntityId);
+            creature.Client.Send(packet);
+        }
+
+        /// <summary>
+        /// Sends DressingRoomRetrieveItemR to creature's client.
+        /// </summary>
+        /// <param name="creature"></param>
+        /// <param name="result"></param>
+        public static void DressingRoomRetrieveItemR(Creature creature, bool result)
+        {
+            var packet = new Packet(Op.DressingRoomRetrieveItemR, creature.EntityId);
+            packet.PutByte(result);
+            creature.Client.Send(packet);
+        }
 	}
 }

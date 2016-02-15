@@ -476,6 +476,18 @@ namespace Aura.Mabi.Network
 		public const int InquiryResponseR = 0x9666;
 		public const int ArenaRoundInfo = 0x9667;
 		public const int ArenaRoundInfoCancel = 0x9668;
+
+        public const int OpenDressingRoom = 0x96C9;
+        public const int OpenDressingRoomR = 0x96CA;
+        public const int CloseDressingRoom = 0x96CB;
+        public const int CloseDressingRoomR = 0x96CC;
+        public const int DressingRoomAddItemListing = 0x96CD;
+        public const int DressingRoomRemoveItemListing = 0x96CE;
+        public const int DressingRoomRetrieveItem = 0x96CF;
+        public const int DressingRoomRetrieveItemR = 0x96D0;
+        public const int DressingRoomPutItem = 0x96D1;
+        public const int DressingRoomPutItemR = 0x96D2;
+
 		public const int AgeUpEffect = 0x9858;
 
 		public const int ConditionUpdate = 0xA028;

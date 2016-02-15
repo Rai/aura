@@ -12,6 +12,7 @@ using Aura.Mabi.Const;
 using Aura.Data;
 using Aura.Mabi.Network;
 using Aura.Mabi;
+using Aura.Channel.World.Entities;
 
 namespace Aura.Channel.Network.Handlers
 {
@@ -451,6 +452,94 @@ namespace Aura.Channel.Network.Handlers
 
             //Send.MsgBox(creature, Localization.Get("DEBUG: {0}, {1}, {2}, {3}"), season, episode, unk3, unk4);
             // Send 0x186A6 packet (PlayCutscene)
+        }
+
+        /// <summary>
+        /// Player opens Dressing Room
+        /// </summary>
+        /// <remarks>
+        /// No Parameters.
+        /// </remarks>
+        [PacketHandler(Op.OpenDressingRoom)]
+        public void OpenDressingRoom(ChannelClient client, Packet packet)
+        {
+            var creature = client.GetCreatureSafe(packet.Id);
+            Send.OpenDressingRoomR(creature);
+            Send.StatUpdateDefault(creature);
+            Send.CreatureBodyUpdate(creature);
+        }
+
+        /// <summary>
+        /// Player closes Dressing Room
+        /// </summary>
+        /// <remarks>
+        /// No Parameters.
+        /// </remarks>
+        [PacketHandler(Op.CloseDressingRoom)]
+        public void CloseDressingRoom(ChannelClient client, Packet packet)
+        {
+            var creature = client.GetCreatureSafe(packet.Id);
+            Send.CloseDressingRoomR(creature);
+        }
+
+        /// <summary>
+        /// Player Adds item to dressing room
+        /// </summary>
+        /// <remarks>
+        /// No Parameters.
+        /// </remarks>
+        [PacketHandler(Op.DressingRoomPutItem)]
+        public void DressingRoomPutItem(ChannelClient client, Packet packet)
+        {
+            var creature = client.GetCreatureSafe(packet.Id);
+            var entityId = packet.GetLong();
+
+            var item = creature.Inventory.GetItem(entityId);
+            if (item == null)
+            {
+                Send.DressingRoomPutItemR(creature, false);
+                return;
+            }
+
+            creature.Inventory.Remove(item);
+            ChannelServer.Instance.Database.AddDressingRoomItem(client.Account.Id, item);
+            Send.DressingRoomAddItemListing(creature, item);
+            
+
+            Send.DressingRoomPutItemR(creature, true);
+        }
+
+        /// <summary>
+        /// Player Removes item from dressing room
+        /// </summary>
+        /// <remarks>
+        /// No Parameters.
+        /// </remarks>
+        [PacketHandler(Op.DressingRoomRetrieveItem)]
+        public void DressingRoomRetrieveItem(ChannelClient client, Packet packet)
+        {
+            var creature = client.GetCreatureSafe(packet.Id);
+            var entityId = packet.GetLong();
+            var dressingroomItems = ChannelServer.Instance.Database.GetDressingRoomItems(client.Account.Id);
+            //
+            // TODO: Check for item and see if they have enough gold to retrieve. (Like retail)
+            //
+
+            foreach (Item item in dressingroomItems)
+            {
+                if (item.EntityId == entityId)
+                {
+                    Send.DressingRoomRemoveItemListing(creature, item);
+                    ChannelServer.Instance.Database.RemoveDressingRoomItem(client.Account.Id,entityId);
+                    creature.Inventory.Add(item, Pocket.Temporary);
+                    //item.IsNew = true;
+                    //Send.ItemUpdate(creature, item);
+                    Send.DressingRoomRetrieveItemR(creature, true);
+                    return;
+                }
+            }
+
+            Send.DressingRoomRetrieveItemR(creature, false);
         }
 
 		/// <summary>

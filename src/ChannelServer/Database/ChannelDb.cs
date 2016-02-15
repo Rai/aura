@@ -353,6 +353,197 @@ namespace Aura.Channel.Database
 			}
 		}
 
+        public void RemoveDressingRoomItem(string accountId, long entityId)
+        {
+            using (var conn = this.Connection)
+            using (var transaction = conn.BeginTransaction())
+            {
+                using (var mc = new MySqlCommand("DELETE FROM `dressingroom_items` WHERE `accountId` = @accountId AND `entityId` = @entityId", conn, transaction))
+                {
+                    mc.Parameters.AddWithValue("@accountId", accountId);
+                    mc.Parameters.AddWithValue("@entityId", entityId);
+                    mc.ExecuteNonQuery();
+                }
+                transaction.Commit();
+            }
+        }
+
+        public void AddDressingRoomItem(string accountId, Item item)
+        {
+            using (var conn = this.Connection)
+            using (var transaction = conn.BeginTransaction())
+            {
+                using (var cmd = new InsertCommand("INSERT INTO `dressingroom_items` {0}", conn, transaction))
+                {
+                    cmd.Set("accountId", accountId);
+                    cmd.Set("entityId", item.EntityId);
+                    cmd.Set("itemId", item.Info.Id);
+                    cmd.Set("color1", item.Info.Color1);
+                    cmd.Set("color2", item.Info.Color2);
+                    cmd.Set("color3", item.Info.Color3);
+                    cmd.Set("price", item.OptionInfo.Price);
+                    cmd.Set("sellPrice", item.OptionInfo.SellingPrice);
+                    cmd.Set("amount", item.Info.Amount);
+                    cmd.Set("state", item.Info.State);
+                    cmd.Set("figureB", item.Info.FigureB);
+                    cmd.Set("durability", item.OptionInfo.Durability);
+                    cmd.Set("durabilityMax", item.OptionInfo.DurabilityMax);
+                    cmd.Set("durabilityOriginal", item.OptionInfo.DurabilityOriginal);
+                    cmd.Set("attackMin", item.OptionInfo.AttackMin);
+                    cmd.Set("attackMax", item.OptionInfo.AttackMax);
+                    cmd.Set("injuryMin", item.OptionInfo.InjuryMin);
+                    cmd.Set("injuryMax", item.OptionInfo.InjuryMax);
+                    cmd.Set("balance", item.OptionInfo.Balance);
+                    cmd.Set("critical", item.OptionInfo.Critical);
+                    cmd.Set("defense", item.OptionInfo.Defense);
+                    cmd.Set("protection", item.OptionInfo.Protection);
+                    cmd.Set("range", item.OptionInfo.EffectiveRange);
+                    cmd.Set("attackSpeed", (byte)item.OptionInfo.AttackSpeed);
+                    cmd.Set("experience", item.Proficiency);
+                    cmd.Set("upgrades", item.OptionInfo.Upgraded);
+                    cmd.Set("meta1", item.MetaData1.ToString());
+                    cmd.Set("meta2", item.MetaData2.ToString());
+                    cmd.Set("flags", (byte)item.OptionInfo.Flags);
+                    cmd.Set("prefix", item.OptionInfo.Prefix);
+                    cmd.Set("suffix", item.OptionInfo.Suffix);
+                    cmd.Set("upgradeEffects", item.SerializeUpgradeEffects());
+
+                    cmd.Execute();
+                }
+
+                // Save ego data
+                if (item.Data.HasTag("/ego_weapon/"))
+                {
+                    using (var cmd = new InsertCommand("INSERT INTO `egos` {0}", conn, transaction))
+                    {
+                        cmd.Set("itemEntityId", item.EntityId);
+                        cmd.Set("egoRace", (byte)item.EgoInfo.Race);
+                        cmd.Set("name", item.EgoInfo.Name);
+                        cmd.Set("strLevel", item.EgoInfo.StrLevel);
+                        cmd.Set("strExp", item.EgoInfo.StrExp);
+                        cmd.Set("intLevel", item.EgoInfo.IntLevel);
+                        cmd.Set("intExp", item.EgoInfo.IntExp);
+                        cmd.Set("dexLevel", item.EgoInfo.DexLevel);
+                        cmd.Set("dexExp", item.EgoInfo.DexExp);
+                        cmd.Set("willLevel", item.EgoInfo.WillLevel);
+                        cmd.Set("willExp", item.EgoInfo.WillExp);
+                        cmd.Set("luckLevel", item.EgoInfo.LuckLevel);
+                        cmd.Set("luckExp", item.EgoInfo.LuckExp);
+                        cmd.Set("socialLevel", item.EgoInfo.SocialLevel);
+                        cmd.Set("socialExp", item.EgoInfo.SocialExp);
+                        cmd.Set("awakeningEnergy", item.EgoInfo.AwakeningEnergy);
+                        cmd.Set("awakeningExp", item.EgoInfo.AwakeningExp);
+                        cmd.Set("lastFeeding", item.EgoInfo.LastFeeding);
+
+                        cmd.Execute();
+                    }
+                }
+
+                transaction.Commit();
+            }
+        }
+
+        public List<Item> GetDressingRoomItems(string accountId)
+        {
+            var result = new List<Item>();
+            using (var conn = this.Connection)
+            {
+                var query = "SELECT * FROM `dressingroom_items` WHERE `accountId` = @accountId";
+
+                using (var mc = new MySqlCommand(query, conn))
+                {
+                    mc.Parameters.AddWithValue("@accountId", accountId);
+
+                    using (var reader = mc.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var itemId = reader.GetInt32("itemId");
+                            var entityId = reader.GetInt64("entityId");
+
+                            var item = new Item(itemId, entityId);
+                            item.Info.Pocket = Pocket.None;
+                            item.Info.X = 0;
+                            item.Info.Y = 0;
+                            item.Info.Color1 = reader.GetUInt32("color1");
+                            item.Info.Color2 = reader.GetUInt32("color2");
+                            item.Info.Color3 = reader.GetUInt32("color3");
+                            item.Info.Amount = reader.GetUInt16("amount");
+                            item.Info.State = reader.GetByte("state");
+                            item.Info.FigureB = reader.GetByte("figureB");
+                            item.OptionInfo.Price = reader.GetInt32("price");
+                            item.OptionInfo.SellingPrice = reader.GetInt32("sellPrice");
+                            item.OptionInfo.Durability = reader.GetInt32("durability");
+                            item.OptionInfo.DurabilityMax = reader.GetInt32("durabilityMax");
+                            item.OptionInfo.DurabilityOriginal = reader.GetInt32("durabilityOriginal");
+                            item.OptionInfo.AttackMin = reader.GetUInt16("attackMin");
+                            item.OptionInfo.AttackMax = reader.GetUInt16("attackMax");
+                            item.OptionInfo.InjuryMin = reader.GetUInt16("injuryMin");
+                            item.OptionInfo.InjuryMax = reader.GetUInt16("injuryMax");
+                            item.OptionInfo.Balance = reader.GetByte("balance");
+                            item.OptionInfo.Critical = reader.GetSByte("critical");
+                            item.OptionInfo.Defense = reader.GetInt32("defense");
+                            item.OptionInfo.Protection = reader.GetInt16("protection");
+                            item.OptionInfo.EffectiveRange = reader.GetInt16("range");
+                            item.OptionInfo.AttackSpeed = (AttackSpeed)reader.GetByte("attackSpeed");
+                            item.Proficiency = reader.GetInt32("experience");
+                            item.OptionInfo.Upgraded = reader.GetByte("upgrades");
+                            item.MetaData1.Parse(reader.GetStringSafe("meta1") ?? "");
+                            item.MetaData2.Parse(reader.GetStringSafe("meta2") ?? "");
+                            item.OptionInfo.LinkedPocketId = Pocket.None;
+                            item.OptionInfo.Flags = (ItemFlags)reader.GetByte("flags");
+                            item.OptionInfo.Prefix = reader.GetUInt16("prefix");
+                            item.OptionInfo.Suffix = reader.GetUInt16("suffix");
+
+                            var upgradeEffects = reader.GetStringSafe("upgradeEffects");
+                            item.DeserializeUpgradeEffects(upgradeEffects);
+
+                            result.Add(item);
+                        }
+                    }
+                }
+
+                // Load ego data
+                using (var mc = new MySqlCommand("SELECT * FROM `egos` WHERE itemEntityId = @itemEntityId", conn))
+                {
+                    foreach (var item in result.Where(item => item.Data.HasTag("/ego_weapon/")))
+                    {
+                        mc.Parameters.Clear();
+                        mc.Parameters.AddWithValue("@itemEntityId", item.EntityId);
+
+                        using (var reader = mc.ExecuteReader())
+                        {
+                            if (!reader.Read())
+                            {
+                                Log.Warning("ChannelDb.GetItems: No ego data for '{0:X16}'.", item.EntityId);
+                                continue;
+                            }
+
+                            item.EgoInfo.Race = (EgoRace)reader.GetByte("egoRace");
+                            item.EgoInfo.Name = reader.GetStringSafe("name");
+                            item.EgoInfo.StrLevel = reader.GetByte("strLevel");
+                            item.EgoInfo.StrExp = reader.GetInt32("strExp");
+                            item.EgoInfo.IntLevel = reader.GetByte("intLevel");
+                            item.EgoInfo.IntExp = reader.GetInt32("intExp");
+                            item.EgoInfo.DexLevel = reader.GetByte("dexLevel");
+                            item.EgoInfo.DexExp = reader.GetInt32("dexExp");
+                            item.EgoInfo.WillLevel = reader.GetByte("willLevel");
+                            item.EgoInfo.WillExp = reader.GetInt32("willExp");
+                            item.EgoInfo.LuckLevel = reader.GetByte("luckLevel");
+                            item.EgoInfo.LuckExp = reader.GetInt32("luckExp");
+                            item.EgoInfo.SocialLevel = reader.GetByte("socialLevel");
+                            item.EgoInfo.SocialExp = reader.GetInt32("socialExp");
+                            item.EgoInfo.AwakeningEnergy = reader.GetByte("awakeningEnergy");
+                            item.EgoInfo.AwakeningExp = reader.GetInt32("awakeningExp");
+                            item.EgoInfo.LastFeeding = reader.GetDateTimeSafe("lastFeeding");
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
 		/// <summary>
 		/// Returns list of items for creature with the given id.
 		/// </summary>
