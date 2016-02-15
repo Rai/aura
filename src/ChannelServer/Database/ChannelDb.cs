@@ -410,35 +410,6 @@ namespace Aura.Channel.Database
 
 					cmd.Execute();
 				}
-
-				// Save ego data
-				if (item.Data.HasTag("/ego_weapon/"))
-				{
-					using (var cmd = new InsertCommand("INSERT INTO `egos` {0}", conn, transaction))
-					{
-						cmd.Set("itemEntityId", item.EntityId);
-						cmd.Set("egoRace", (byte)item.EgoInfo.Race);
-						cmd.Set("name", item.EgoInfo.Name);
-						cmd.Set("strLevel", item.EgoInfo.StrLevel);
-						cmd.Set("strExp", item.EgoInfo.StrExp);
-						cmd.Set("intLevel", item.EgoInfo.IntLevel);
-						cmd.Set("intExp", item.EgoInfo.IntExp);
-						cmd.Set("dexLevel", item.EgoInfo.DexLevel);
-						cmd.Set("dexExp", item.EgoInfo.DexExp);
-						cmd.Set("willLevel", item.EgoInfo.WillLevel);
-						cmd.Set("willExp", item.EgoInfo.WillExp);
-						cmd.Set("luckLevel", item.EgoInfo.LuckLevel);
-						cmd.Set("luckExp", item.EgoInfo.LuckExp);
-						cmd.Set("socialLevel", item.EgoInfo.SocialLevel);
-						cmd.Set("socialExp", item.EgoInfo.SocialExp);
-						cmd.Set("awakeningEnergy", item.EgoInfo.AwakeningEnergy);
-						cmd.Set("awakeningExp", item.EgoInfo.AwakeningExp);
-						cmd.Set("lastFeeding", item.EgoInfo.LastFeeding);
-
-						cmd.Execute();
-					}
-				}
-
 				transaction.Commit();
 			}
 		}
@@ -499,43 +470,6 @@ namespace Aura.Channel.Database
 							item.DeserializeUpgradeEffects(upgradeEffects);
 
 							result.Add(item);
-						}
-					}
-				}
-
-				// Load ego data
-				using (var mc = new MySqlCommand("SELECT * FROM `egos` WHERE itemEntityId = @itemEntityId", conn))
-				{
-					foreach (var item in result.Where(item => item.Data.HasTag("/ego_weapon/")))
-					{
-						mc.Parameters.Clear();
-						mc.Parameters.AddWithValue("@itemEntityId", item.EntityId);
-
-						using (var reader = mc.ExecuteReader())
-						{
-							if (!reader.Read())
-							{
-								Log.Warning("ChannelDb.GetItems: No ego data for '{0:X16}'.", item.EntityId);
-								continue;
-							}
-
-							item.EgoInfo.Race = (EgoRace)reader.GetByte("egoRace");
-							item.EgoInfo.Name = reader.GetStringSafe("name");
-							item.EgoInfo.StrLevel = reader.GetByte("strLevel");
-							item.EgoInfo.StrExp = reader.GetInt32("strExp");
-							item.EgoInfo.IntLevel = reader.GetByte("intLevel");
-							item.EgoInfo.IntExp = reader.GetInt32("intExp");
-							item.EgoInfo.DexLevel = reader.GetByte("dexLevel");
-							item.EgoInfo.DexExp = reader.GetInt32("dexExp");
-							item.EgoInfo.WillLevel = reader.GetByte("willLevel");
-							item.EgoInfo.WillExp = reader.GetInt32("willExp");
-							item.EgoInfo.LuckLevel = reader.GetByte("luckLevel");
-							item.EgoInfo.LuckExp = reader.GetInt32("luckExp");
-							item.EgoInfo.SocialLevel = reader.GetByte("socialLevel");
-							item.EgoInfo.SocialExp = reader.GetInt32("socialExp");
-							item.EgoInfo.AwakeningEnergy = reader.GetByte("awakeningEnergy");
-							item.EgoInfo.AwakeningExp = reader.GetInt32("awakeningExp");
-							item.EgoInfo.LastFeeding = reader.GetDateTimeSafe("lastFeeding");
 						}
 					}
 				}

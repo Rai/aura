@@ -436,19 +436,16 @@ namespace Aura.Channel.Network.Sending
 
 			gp.PutByte(1);
 			gp.PutString(creature.Client.Account.Id);
-			gp.PutInt(dressingRoomItems.Count); //Count of some items?
+			gp.PutInt(dressingRoomItems.Count);
 
-			if (dressingRoomItems.Count > 0)
+			foreach (Item item in dressingRoomItems)
 			{
-				foreach (Item item in dressingRoomItems)
-				{
-					gp.PutLong(0);
-					gp.AddItemInfo(item, ItemPacketType.Private);
-				}
+				gp.PutLong(0);
+				gp.AddItemInfo(item, ItemPacketType.Private);
 			}
 
 			// 039 [........000008AF] Int    : 2223 (Count & pon charge for hair, face, etc?)
-			gp.PutInt(0); // Count & pon charge for hair, face, etc?
+			gp.PutInt(0);
 
 			// 040 [........00000003] Int    : 3
 			// 041 [........00000001] Int    : 1

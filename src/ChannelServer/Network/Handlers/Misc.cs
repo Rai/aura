@@ -524,22 +524,18 @@ namespace Aura.Channel.Network.Handlers
 			var creature = client.GetCreatureSafe(packet.Id);
 			var entityId = packet.GetLong();
 			var dressingroomItems = ChannelServer.Instance.Database.GetDressingRoomItems(client.Account.Id);
-			//
+			
 			// TODO: Check for item and see if they have enough gold to retrieve. (Like retail)
-			//
 
-			foreach (Item item in dressingroomItems)
+			var item = dressingroomItems.FirstOrDefault(i => i.EntityId == entityId);
+			if (item != null)
 			{
-				if (item.EntityId == entityId)
-				{
-					Send.DressingRoomRemoveItemListing(creature, item);
-					ChannelServer.Instance.Database.RemoveDressingRoomItem(client.Account.Id,entityId);
-					creature.Inventory.Add(item, Pocket.Temporary);
-					//item.IsNew = true;
-					//Send.ItemUpdate(creature, item);
-					Send.DressingRoomRetrieveItemR(creature, true);
-					return;
-				}
+				Send.DressingRoomRemoveItemListing(creature, item);
+				ChannelServer.Instance.Database.RemoveDressingRoomItem(client.Account.Id, entityId);
+				creature.Inventory.Add(item, Pocket.Temporary);
+				//item.IsNew = true;
+				//Send.ItemUpdate(creature, item);
+				Send.DressingRoomRetrieveItemR(creature, true);
 			}
 
 			Send.DressingRoomRetrieveItemR(creature, false);
