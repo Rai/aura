@@ -429,16 +429,15 @@ namespace Aura.Channel.Network.Sending
 		/// </summary>
 		/// <param name="creature"></param>
 		/// <param name="result"></param>
-		public static void OpenDressingRoomR(Creature creature)
+		public static void OpenDressingRoomR(PlayerCreature creature)
 		{
 			var gp = new Packet(Op.OpenDressingRoomR, creature.EntityId);
-			List<Item> dressingRoomItems = ChannelServer.Instance.Database.GetDressingRoomItems(creature.Client.Account.Id);
 
 			gp.PutByte(1);
 			gp.PutString(creature.Client.Account.Id);
-			gp.PutInt(dressingRoomItems.Count);
+			gp.PutInt(creature.DressingRoomItems.Count);
 
-			foreach (Item item in dressingRoomItems)
+			foreach (Item item in creature.DressingRoomItems)
 			{
 				gp.PutLong(0);
 				gp.AddItemInfo(item, ItemPacketType.Private);

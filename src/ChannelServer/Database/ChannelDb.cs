@@ -305,6 +305,9 @@ namespace Aura.Channel.Database
 			// everything is set.
 			character.Inventory.ChangeWeaponSet(weaponSet);
 
+			// Load items for Dressing Room
+			character.DressingRoomItems = this.GetDressingRoomItems(account.Id);
+
 			return character;
 		}
 
@@ -358,62 +361,56 @@ namespace Aura.Channel.Database
 			}
 		}
 
-		public void RemoveDressingRoomItem(string accountId, long entityId)
+		public void SaveDressingRoomItems(Account account, PlayerCreature character)
 		{
 			using (var conn = this.Connection)
 			using (var transaction = conn.BeginTransaction())
 			{
-				using (var mc = new MySqlCommand("DELETE FROM `dressingroom_items` WHERE `accountId` = @accountId AND `entityId` = @entityId", conn, transaction))
+				using (var mc = new MySqlCommand("DELETE FROM `dressingroom_items` WHERE `accountId` = @accountId", conn, transaction))
 				{
-					mc.Parameters.AddWithValue("@accountId", accountId);
-					mc.Parameters.AddWithValue("@entityId", entityId);
+					mc.Parameters.AddWithValue("@accountId", account.Id);
 					mc.ExecuteNonQuery();
 				}
-				transaction.Commit();
-			}
-		}
 
-		public void AddDressingRoomItem(string accountId, Item item)
-		{
-			using (var conn = this.Connection)
-			using (var transaction = conn.BeginTransaction())
-			{
-				using (var cmd = new InsertCommand("INSERT INTO `dressingroom_items` {0}", conn, transaction))
+				var items = character.DressingRoomItems;
+				foreach (var item in items)
 				{
-					cmd.Set("accountId", accountId);
-					cmd.Set("entityId", item.EntityId);
-					cmd.Set("itemId", item.Info.Id);
-					cmd.Set("color1", item.Info.Color1);
-					cmd.Set("color2", item.Info.Color2);
-					cmd.Set("color3", item.Info.Color3);
-					cmd.Set("price", item.OptionInfo.Price);
-					cmd.Set("sellPrice", item.OptionInfo.SellingPrice);
-					cmd.Set("amount", item.Info.Amount);
-					cmd.Set("state", item.Info.State);
-					cmd.Set("figureB", item.Info.FigureB);
-					cmd.Set("durability", item.OptionInfo.Durability);
-					cmd.Set("durabilityMax", item.OptionInfo.DurabilityMax);
-					cmd.Set("durabilityOriginal", item.OptionInfo.DurabilityOriginal);
-					cmd.Set("attackMin", item.OptionInfo.AttackMin);
-					cmd.Set("attackMax", item.OptionInfo.AttackMax);
-					cmd.Set("injuryMin", item.OptionInfo.InjuryMin);
-					cmd.Set("injuryMax", item.OptionInfo.InjuryMax);
-					cmd.Set("balance", item.OptionInfo.Balance);
-					cmd.Set("critical", item.OptionInfo.Critical);
-					cmd.Set("defense", item.OptionInfo.Defense);
-					cmd.Set("protection", item.OptionInfo.Protection);
-					cmd.Set("range", item.OptionInfo.EffectiveRange);
-					cmd.Set("attackSpeed", (byte)item.OptionInfo.AttackSpeed);
-					cmd.Set("experience", item.Proficiency);
-					cmd.Set("upgrades", item.OptionInfo.Upgraded);
-					cmd.Set("meta1", item.MetaData1.ToString());
-					cmd.Set("meta2", item.MetaData2.ToString());
-					cmd.Set("flags", (byte)item.OptionInfo.Flags);
-					cmd.Set("prefix", item.OptionInfo.Prefix);
-					cmd.Set("suffix", item.OptionInfo.Suffix);
-					cmd.Set("upgradeEffects", item.SerializeUpgradeEffects());
+					using (var cmd = new InsertCommand("INSERT INTO `dressingroom_items` {0}", conn, transaction))
+					{
+						cmd.Set("accountId", account.Id);
+						cmd.Set("itemId", item.Info.Id);
+						cmd.Set("color1", item.Info.Color1);
+						cmd.Set("color2", item.Info.Color2);
+						cmd.Set("color3", item.Info.Color3);
+						cmd.Set("price", item.OptionInfo.Price);
+						cmd.Set("sellPrice", item.OptionInfo.SellingPrice);
+						cmd.Set("amount", item.Info.Amount);
+						cmd.Set("state", item.Info.State);
+						cmd.Set("figureB", item.Info.FigureB);
+						cmd.Set("durability", item.OptionInfo.Durability);
+						cmd.Set("durabilityMax", item.OptionInfo.DurabilityMax);
+						cmd.Set("durabilityOriginal", item.OptionInfo.DurabilityOriginal);
+						cmd.Set("attackMin", item.OptionInfo.AttackMin);
+						cmd.Set("attackMax", item.OptionInfo.AttackMax);
+						cmd.Set("injuryMin", item.OptionInfo.InjuryMin);
+						cmd.Set("injuryMax", item.OptionInfo.InjuryMax);
+						cmd.Set("balance", item.OptionInfo.Balance);
+						cmd.Set("critical", item.OptionInfo.Critical);
+						cmd.Set("defense", item.OptionInfo.Defense);
+						cmd.Set("protection", item.OptionInfo.Protection);
+						cmd.Set("range", item.OptionInfo.EffectiveRange);
+						cmd.Set("attackSpeed", (byte)item.OptionInfo.AttackSpeed);
+						cmd.Set("experience", item.Proficiency);
+						cmd.Set("upgrades", item.OptionInfo.Upgraded);
+						cmd.Set("meta1", item.MetaData1.ToString());
+						cmd.Set("meta2", item.MetaData2.ToString());
+						cmd.Set("flags", (byte)item.OptionInfo.Flags);
+						cmd.Set("prefix", item.OptionInfo.Prefix);
+						cmd.Set("suffix", item.OptionInfo.Suffix);
+						cmd.Set("upgradeEffects", item.SerializeUpgradeEffects());
 
-					cmd.Execute();
+						cmd.Execute();
+					}
 				}
 				transaction.Commit();
 			}
@@ -435,9 +432,7 @@ namespace Aura.Channel.Database
 						while (reader.Read())
 						{
 							var itemId = reader.GetInt32("itemId");
-							var entityId = reader.GetInt64("entityId");
-
-							var item = new Item(itemId, entityId);
+							var item = new Item(itemId);
 							item.Info.Pocket = Pocket.None;
 							item.Info.X = 0;
 							item.Info.Y = 0;
@@ -1133,6 +1128,7 @@ namespace Aura.Channel.Database
 			this.SaveCharacterTitles(creature);
 			this.SaveCharacterSkills(creature);
 			//this.SaveCharacterCooldowns(creature);
+			this.SaveDressingRoomItems(account, creature);
 
 			this.SaveVars(account.Id, creature.CreatureId, creature.Vars.Perm);
 		}

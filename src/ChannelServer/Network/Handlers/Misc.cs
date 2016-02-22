@@ -467,9 +467,7 @@ namespace Aura.Channel.Network.Handlers
 		public void OpenDressingRoom(ChannelClient client, Packet packet)
 		{
 			var creature = client.GetCreatureSafe(packet.Id);
-			Send.OpenDressingRoomR(creature);
-			Send.StatUpdateDefault(creature);
-			Send.CreatureBodyUpdate(creature);
+			Send.OpenDressingRoomR((PlayerCreature)creature);
 		}
 
 		/// <summary>
@@ -494,7 +492,7 @@ namespace Aura.Channel.Network.Handlers
 		[PacketHandler(Op.DressingRoomPutItem)]
 		public void DressingRoomPutItem(ChannelClient client, Packet packet)
 		{
-			var creature = client.GetCreatureSafe(packet.Id);
+			var creature = (PlayerCreature)client.GetCreatureSafe(packet.Id);
 			var entityId = packet.GetLong();
 
 			var item = creature.Inventory.GetItem(entityId);
@@ -505,10 +503,9 @@ namespace Aura.Channel.Network.Handlers
 			}
 
 			creature.Inventory.Remove(item);
-			ChannelServer.Instance.Database.AddDressingRoomItem(client.Account.Id, item);
+			creature.DressingRoomItems.Add(item);
 			Send.DressingRoomAddItemListing(creature, item);
 			
-
 			Send.DressingRoomPutItemR(creature, true);
 		}
 
@@ -521,20 +518,17 @@ namespace Aura.Channel.Network.Handlers
 		[PacketHandler(Op.DressingRoomRetrieveItem)]
 		public void DressingRoomRetrieveItem(ChannelClient client, Packet packet)
 		{
-			var creature = client.GetCreatureSafe(packet.Id);
+			var creature = (PlayerCreature)client.GetCreatureSafe(packet.Id);
 			var entityId = packet.GetLong();
-			var dressingroomItems = ChannelServer.Instance.Database.GetDressingRoomItems(client.Account.Id);
 			
 			// TODO: Check for item and see if they have enough gold to retrieve. (Like retail)
 
-			var item = dressingroomItems.FirstOrDefault(i => i.EntityId == entityId);
+			var item = creature.DressingRoomItems.FirstOrDefault(i => i.EntityId == entityId);
 			if (item != null)
 			{
 				Send.DressingRoomRemoveItemListing(creature, item);
-				ChannelServer.Instance.Database.RemoveDressingRoomItem(client.Account.Id, entityId);
+				creature.DressingRoomItems.Remove(item);
 				creature.Inventory.Add(item, Pocket.Temporary);
-				//item.IsNew = true;
-				//Send.ItemUpdate(creature, item);
 				Send.DressingRoomRetrieveItemR(creature, true);
 			}
 

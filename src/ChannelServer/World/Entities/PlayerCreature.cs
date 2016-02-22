@@ -45,6 +45,11 @@ namespace Aura.Channel.World.Entities
 		/// </summary>
 		public bool Save { get; set; }
 
+		// <summary>
+		// Dressing room items
+		// </summary>
+		public List<Item> DressingRoomItems { get; set; }
+
 		/// <summary>
 		/// Player's CP, based on stats and skills.
 		/// </summary>

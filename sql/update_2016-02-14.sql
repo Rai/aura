@@ -1,5 +1,4 @@
-CREATE TABLE IF NOT EXISTS `dressingroom_items` (
-  `entityId` bigint(20) NOT NULL,
+CREATE TABLE `dressingroom_items` (
   `accountId` varchar(50) NOT NULL,
   `itemId` int(11) NOT NULL,
   `color1` int(10) unsigned NOT NULL DEFAULT '0',
@@ -31,7 +30,6 @@ CREATE TABLE IF NOT EXISTS `dressingroom_items` (
   `prefix` smallint(5) unsigned NOT NULL DEFAULT '0',
   `suffix` smallint(5) unsigned NOT NULL DEFAULT '0',
   `upgradeEffects` text,
-  PRIMARY KEY (`entityId`),
-  KEY `accountId` (`accountId`)
+  UNIQUE KEY `accountId` (`accountId`,`itemId`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
