@@ -1,4 +1,4 @@
-CREATE TABLE `dressingroom_items` (
+CREATE TABLE IF NOT EXISTS `dressingroom_items` (
   `accountId` varchar(50) NOT NULL,
   `itemId` int(11) NOT NULL,
   `color1` int(10) unsigned NOT NULL DEFAULT '0',
