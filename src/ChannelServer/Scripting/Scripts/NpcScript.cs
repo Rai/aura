@@ -1069,6 +1069,17 @@ namespace Aura.Channel.Scripting.Scripts
 		}
 
 		/// <summary>
+		/// Returns true if player has quest, but it's not done yet,
+		/// or hasn't been completed.
+		/// </summary>
+		/// <param name="questId"></param>
+		/// <returns></returns>
+		public bool QuestActiveUncompleted(int questId)
+		{
+			return (this.HasQuest(questId) && !this.QuestCompleted(questId));
+		}
+
+		/// <summary>
 		/// Finishes objective in quest.
 		/// </summary>
 		/// <param name="questId"></param>
@@ -1916,9 +1927,61 @@ namespace Aura.Channel.Scripting.Scripts
 							"</arguments>" +
 						"</function>" +
 				"</call>",
-			this.Player.EntityId, HttpUtility.HtmlEncode(element.ToString()));
+			this.Player.EntityId, HtmlEncode(element.ToString()));
 
 			Send.NpcTalk(this.Player, xml);
+		}
+
+		/// <summary>
+		/// Encodes HTML characters in string.
+		/// </summary>
+		/// <remarks>
+		/// Encodes &, >, <, ", and \.
+		/// 
+		/// Custom method, as HttpUtility.HtmlEncode encodes UTF8 characters,
+		/// but the client doesn't understand the codes.
+		/// </remarks>
+		/// <param name="html"></param>
+		/// <returns></returns>
+		private string HtmlEncode(string html)
+		{
+			if (string.IsNullOrWhiteSpace(html))
+				return html;
+
+			var result = new StringBuilder();
+
+			for (int i = 0; i < html.Length; ++i)
+			{
+				var chr = html[i];
+				switch (chr)
+				{
+					case '&':
+						result.Append("&amp;");
+						break;
+
+					case '>':
+						result.Append("&gt;");
+						break;
+
+					case '<':
+						result.Append("&lt;");
+						break;
+
+					case '"':
+						result.Append("&quot;");
+						break;
+
+					case '\'':
+						result.Append("&#39;");
+						break;
+
+					default:
+						result.Append(chr);
+						break;
+				}
+			}
+
+			return result.ToString();
 		}
 
 		/// <summary>

@@ -720,9 +720,6 @@ namespace Aura.Channel.Network.Handlers
 		/// 002 [00500000000003B9] Long   : 22517998136853433
 		/// 003 [..............00] Byte   : 0
 		/// </example>
-		/// <remarks>
-		/// TODO: How to get the Enchanter's Burn button? Having the items isn't enough.
-		/// </remarks>
 		[PacketHandler(Op.BurnItem)]
 		public void BurnItem(ChannelClient client, Packet packet)
 		{
@@ -959,6 +956,26 @@ namespace Aura.Channel.Network.Handlers
 			var parameter = client.Account.SessionKey.ToString();
 
 			Send.OpenItemShopR(creature, true, parameter);
+		}
+
+		/// <summary>
+		/// Requests list of expired items to destroy, sent when clicking
+		/// the respective button in the inventory window.
+		/// </summary>
+		/// <remarks>
+		/// Response doesn't seem to be required for fail, but it is sent
+		/// on officials.
+		/// </remarks>
+		/// <example>
+		/// No parameters.
+		/// </example>
+		[PacketHandler(Op.DestroyExpiredItems)]
+		public void DestroyExpiredItems(ChannelClient client, Packet packet)
+		{
+			var creature = client.GetCreatureSafe(packet.Id);
+
+			Send.MsgBox(creature, Localization.Get("Not supported yet."));
+			Send.DestroyExpiredItemsR(creature, false);
 		}
 	}
 }

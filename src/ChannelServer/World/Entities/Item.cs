@@ -92,6 +92,22 @@ namespace Aura.Channel.World.Entities
 		/// </summary>
 		public string Bank { get; set; }
 
+		/// <summary>
+		/// Returns item's quality on a scale from 0 to 100. (Used for food.)
+		/// </summary>
+		public int Quality
+		{
+			get
+			{
+				if (this.MetaData1.Has("QUAL"))
+					// -100~100 + 100 = 0~200 / 2 = 0~100
+					return (this.MetaData1.GetInt("QUAL") + 100) / 2;
+
+				// Return 0 if no quality was set.
+				return 0;
+			}
+		}
+
 		private bool _firstTimeAppear = true;
 		/// <summary>
 		/// Returns true once, and false afterwards, until it's set true again.
@@ -1179,8 +1195,6 @@ namespace Aura.Channel.World.Entities
 			var result = (int)(5.0 / Math.Sqrt(duraPoints) * price);
 			if (result == 0)
 				result = 1;
-
-			// TODO: modifiers
 
 			return result * points;
 		}
